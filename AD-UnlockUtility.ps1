@@ -10,6 +10,9 @@ function Unlock-ADUser {
     begin {
         $TimeStamp = Get-Date -Format "MM/dd/yyyy - HH:mm:ss"
         $Credentials = Get-Credential -Message 'Enter AD admin credentials (User@Domain.com or Domain\Username)'
+        if (!(Test-Path $LogPath)) {
+            New-Item -Path $LogPath -ItemType "File"
+        }
     }
     
     process {
