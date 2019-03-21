@@ -3,15 +3,17 @@ function Unlock-ADUser {
     param(
         [Parameter(Mandatory=$true, Position=0)]
         [string]$Server,
-        [Parameter(Mandatory=$true, Position=1)]
+        [Parameter(Mandatory=$false, Position=1)]
         [string]$LogPath
     )
     
     begin {
         $TimeStamp = Get-Date -Format "MM/dd/yyyy - HH:mm:ss"
         $Credentials = Get-Credential -Message 'Enter AD admin credentials (User@Domain.com or Domain\Username)'
-        if (!(Test-Path $LogPath)) {
-            New-Item -Path $LogPath -ItemType "File"
+        if ($LogPath) {
+            if (!(Test-Path $LogPath)) {
+                New-Item -Path $LogPath -ItemType "File"
+            }
         }
     }
     
@@ -29,17 +31,19 @@ function Unlock-ADUser {
                 break
             }
             else {
-                Write-Warning 'Please re-enter valid credentials.' | Tee-Object -FilePath $LogPath -Append
+                Write-Warning 'Please re-enter valid credentials.'
                 Unlock-ADUser
             }
         }
 
-        Write-Output "($TimeStamp) AD unlock utility has been started" | Tee-Object -FilePath $LogPath -Append
+        Write-Output "($TimeStamp) AD unlock utility has been started"
 
         while ($true) {
             $TimeStamp = Get-Date -Format "MM/dd/yyyy - HH:mm:ss"
             if ($LockedUserSearch -eq $null -or $LockedUserSearch -eq "") {
-                Write-Output "($TimeStamp) No users are locked." | Tee-Object -FilePath $LogPath -Append
+                if ($LogPath) {
+                    Write-Output "($TimeStamp) No users are locked." | Tee-Object -FilePath $LogPath -Append
+                }
                 pause
             }
 
@@ -47,7 +51,9 @@ function Unlock-ADUser {
                 $LockedUserSelection = @($LockedUserSearch.SamAccountName)
                 foreach ($User in $LockedUserSelection) {
                     Unlock-ADAccount -Identity $User -Credential $Credentials -Server $ADServer
-                    Write-Output "($TimeStamp) $User has been unlocked." | Tee-Object -FilePath $LogPath -Append
+                    if ($LogPath) {
+                        Write-Output "($TimeStamp) $User has been unlocked." | Tee-Object -FilePath $LogPath -Append
+                    }
                     pause
                 }
             }
